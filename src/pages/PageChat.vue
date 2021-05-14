@@ -1,7 +1,7 @@
 <template>
   <q-page class="flex column">
 
-    <q-banner class="bg-grey-4 text-center">
+    <q-banner class="bg-grey-4 text-center fixed-top">
       User is offline
     </q-banner>
 
@@ -44,34 +44,32 @@
   </q-page>
 </template>
 <script>
-export default {
-  data() {
-    return{
-      newMessage: '',
-      messages: [
-        {
-          text: 'Hey Jim, how are you?',
+  import { mapState, mapActions } from 'vuex'
+  export default {
+    data() {
+      return{
+        newMessage: ''
+      }
+    },
+    computed: {
+      ...mapState('store', ['messages', 'userDetails'])
+    },
+    methods: {
+      ...mapActions('store', ['firebaseGetMessages', 'firebaseStopGettingMessages']),
+      sendMessage() {
+        this.messages.push({
+          text: this.newMessage,
           from: 'me'
-        },
-        {
-          text: 'Good thanks, Danny! How are you?',
-          from: 'them'
-        },
-        {
-          text: 'Pretty google!',
-          from: 'me'
-        },
-      ]
+        })
+      }
+    },
+    mounted(){
+      this.firebaseGetMessages(this.$route.params.otherUserId)
+    },
+    destroyed() {
+      this.firebaseStopGettingMessages()
     }
-  },
-  methods: {
-    sendMessage() {
-      this.messages.push({
-        text: this.newMessage,
-        from: 'me'
-      })
-    }
+
   }
-}
 
 </script>

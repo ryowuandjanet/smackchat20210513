@@ -2,9 +2,9 @@
   <q-page class="flex">
     <q-list bordered class="full-width" separator>
       <q-item 
-        v-for="user in users" 
-        :key="user.id" 
-        to="/chat"
+        v-for="(user, key) in users" 
+        :key="key" 
+        :to="'/chat/'+key"
         clickable v-ripple>
         <q-item-section avatar>
           <q-avatar color="primary" text-color="white">
@@ -25,24 +25,12 @@
   </q-page>
 </template>
 <script>
-export default {
-  data() {
-    return {
-      users: [{
-        id: 1,
-        name: 'Ruddy Jedrzej',
-        online: true
-      }, {
-        id: 2,
-        name: 'Mallorie Alessandrini',
-        online: false
-      }, {
-        id: 3,
-        name: 'Elisabetta Wicklen',
-        online: false
-      }]
+  import { mapGetters } from 'vuex'
+  export default {
+
+    computed: {
+      ...mapGetters('store',['users'])
     }
   }
-}
 
 </script>

@@ -1,11 +1,29 @@
+import Vue from 'vue'
 import { firebaseAuth, firebaseDb } from 'boot/firebase'
 
+let messagesRef
+
 const state={
-  userDetails: {}
+  userDetails: {},
+  users: {},
+  messages: {}
 }
+
 const mutations={
   setUserDetails(state,payload){
     state.userDetails =payload
+  },
+  addUser(state,payload){
+    Vue.set(state.users,payload.userId, payload.userDetails)
+  },
+  updateUser(state, payload) {
+    Object.assign(state.users[payload.userId], payload.userDetails)
+  },
+  addMessage(state, payload) {
+    Vue.set(state.messages, payload.messageId, payload.messageDetails)
+  },
+  clearMessages(state) {
+    state.messages = {}
   }
 }
 
@@ -52,6 +70,7 @@ const actions={
               online: true
             }
           })
+          dispatch('firebaseGetUser')
           this.$router.push('/',() => {})
         })
       } else {
@@ -74,13 +93,58 @@ const actions={
       firebaseDb.ref("users/"+payload.userId).update(payload.updates)
     }
   },
+  firebaseGetUser({ commit }){
+    firebaseDb.ref("users").on("child_added",snapshot => {
+      let userDetails = snapshot.val()
+      let userId = snapshot.key
+      commit('addUser',{
+        userId,
+        userDetails
+      })
+    })
+    firebaseDb.ref('users').on('child_changed', snapshot => {
+      let userDetails = snapshot.val()
+      let userId = snapshot.key
+      commit('updateUser', {
+        userId,
+        userDetails
+      })
+    })
+
+  },
+  firebaseGetMessages({ commit, state }, otherUserId) {
+    let userId = state.userDetails.userId
+    messagesRef = firebaseDb.ref('chats/' + userId + '/' + otherUserId)
+    messagesRef.on('child_added', snapshot => {
+      let messageDetails = snapshot.val()
+      let messageId = snapshot.key
+      commit('addMessage', {
+        messageId,
+        messageDetails
+      })
+    })
+  },
+  firebaseStopGettingMessages({commit}) {
+    if (messagesRef) {
+      messagesRef.off('child_added')
+      commit('clearMessages')
+    }
+  },
   logoutUser() {
     firebaseAuth.signOut()
   }
 }
 
 const getters={
-
+  users: state => {
+    let usersFiltered = {}
+    Object.keys(state.users).forEach(key => {
+      if (key !== state.userDetails.userId) {
+        usersFiltered[key] = state.users[key]
+      }
+    })
+    return usersFiltered
+  }
 }
 
 export default {
