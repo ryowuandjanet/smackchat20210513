@@ -36,16 +36,16 @@
       return{
         formData: {
           name: '',
-          email: '',
-          password: '',
+          email: 'leowu@gmail.com',
+          password: 'leo140814',
         }
       }
     },
     methods: {
-      ...mapActions('store', ['registerUser']),
+      ...mapActions('store', ['registerUser','loginUser']),
       submitForm() {
         if(this.tab == 'login') {
-          console.log('login the user')
+          this.loginUser(this.formData)
         } else {
           this.registerUser(this.formData)
         }
